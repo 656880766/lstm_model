@@ -20,7 +20,7 @@ class CreateNotificationTable extends Migration
             $table->bigInteger('receiver_id')->unsigned();
             $table->time('time');
             $table->date('date');
-            $table->varchar('status');
+            $table->String('status');
             $table->timestamps();
         });
     }
