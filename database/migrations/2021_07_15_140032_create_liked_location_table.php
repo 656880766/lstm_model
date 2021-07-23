@@ -14,10 +14,10 @@ class CreateLikedLocationTable extends Migration
     public function up()
     {
         Schema::create('liked_location', function (Blueprint $table) {
-            $table->bigInteger('customer_id');
-            $table->bigInteger('location_id');
-            $table->foreign('customer_id')->references('customer_id')->on('customer');
-            $table->foreign('location_id')->references('location_id')->on('location');
+            $table->bigInteger('customer_id')->index();
+            $table->bigInteger('location_id')->index();
+            $table->foreign('customer_id')->references('id')->on('customers');
+            $table->foreign('location_id')->references('id')->on('locations');
             $table->timestamps();
         });
     }

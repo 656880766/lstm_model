@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Http\Requests\CustomerRequest;
 use App\Http\Resources\CustomerResource;
 
-class Customer extends Model
+class Customers extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'customer_id';
+
 
     protected $fillable = [
         'name',
@@ -32,18 +32,21 @@ class Customer extends Model
     public static function postCustomer(CustomerRequest $request)
     {
         $contact = $request->input('phone');
-
         if ($request->input('password') === $request->input('confirm_password')) {
 
-            if (count(Customer::where('phone', $contact)->get()) === 0) {
-                $user =  Customer::create([
+            if (count(Customers::where('phone', $contact)->get()) === 0) {
+                $user =  Customers::create([
                     "name" => $request->input('name'),
                     'gender' => $request->input('gender'),
                     "phone" => $contact,
                     'password' => $request->input('password'),
-                    "avatar" => $request->input('avatar')
+
                 ]);
-                return Response()->json($user, 200, [], JSON_NUMERIC_CHECK);
+                return Response()->json([
+                    'type' => 'success',
+                    'message' => 'inscription reussie suivez le lien de connexion ci dessous',
+                    'data' =>    $user
+                ], 200, [], JSON_NUMERIC_CHECK);
             }
 
             return Response()->json([

@@ -13,11 +13,11 @@ class CreateNotificationTable extends Migration
      */
     public function up()
     {
-        Schema::create('notification', function (Blueprint $table) {
-            $table->increments('notification_id');
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->increments('id');
             $table->String('description');
-            $table->bigInteger('sender_id')->unsigned();
-            $table->bigInteger('receiver_id')->unsigned();
+            $table->bigInteger('sender_id')->unsigned()->index();
+            $table->bigInteger('receiver_id')->unsigned()->index();
             $table->time('time');
             $table->date('date');
             $table->String('status');

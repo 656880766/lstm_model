@@ -16,11 +16,12 @@ class CategoriesController extends Controller
      */
     public function create(Request $request)
     {
+
         if (count(Categories::where('name', $request->input('name'))->get()) === 0) {
             $post_cat =  Categories::create([
                 "name" => $request->input('name'),
-                'blanket' => $request->input('gender'),
-                "description" => $request->input('name')
+                'blanket' => $request->input('blanket'),
+                "description" => $request->input('description')
 
             ]);
             return Response()->json($post_cat, 200, [], JSON_NUMERIC_CHECK);
@@ -46,9 +47,9 @@ class CategoriesController extends Controller
      */
     public function showAll()
     {
-        $cat = Categories::all();
+        $catAll = Categories::all();
 
-        return $cat;
+        return $catAll->toArray();
     }
 
 
@@ -58,9 +59,10 @@ class CategoriesController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function showById()
+    public function showById(Request $request)
     {
-        dd('je suis showById');
+        $catById = Categories::findOrFail($request->id);
+        return response()->json($catById, 200, [], JSON_NUMERIC_CHECK);
     }
 
     /**
@@ -70,15 +72,34 @@ class CategoriesController extends Controller
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function update()
+    public function update(Request $request)
     {
+        $uptCat = Categories::find($request->id);
+        dd($request->id);
+        $request->input('name');
+        $request->input('blanket');
+        $request->input('description');
+        $uptCat->update(
+            [
+                'name' => $request->input('name'),
+                'blanket' => $request->input('blanket'),
+                'description' =>  $request->input('description'),
 
-        dd('je suis update by Id');
+
+            ]
+        );
+
+        return response()->json("mise à jour effectuée", 200, [], JSON_NUMERIC_CHECK);
     }
 
 
 
+    public function delete($id)
+    {
 
+        $del_cat = Categories::find($id);
+        $del_cat->delete();
+    }
     /**
      * Remove the specified resource from storage.
      *
@@ -87,6 +108,7 @@ class CategoriesController extends Controller
      */
     public function destroy()
     {
-        dd('je suis update byid');
+        $del_cat = Categories::all();
+        $del_cat->delete();
     }
 }

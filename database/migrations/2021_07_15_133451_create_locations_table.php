@@ -14,19 +14,18 @@ class CreateLocationsTable extends Migration
     public function up()
     {
         Schema::create('locations', function (Blueprint $table) {
-            $table->increments('location_id');
-
+            $table->increments('id');
             $table->String('place');
             $table->String('name');
-            $table->String('description');
-            $table->String('note_average');
-            $table->String('stars');
+            $table->String('description')->nullable();
+            $table->String('note_average')->nullable();
+            $table->String('stars')->nullable();
             $table->String('image');
             $table->String('state');
             $table->String('owner_name');
             $table->String('owner_phone');
-            $table->bigInteger('category_Id')->unsigned()->index;
-            $table->foreign('category_Id')->references('category_Id')->on('category');
+            $table->bigInteger('category_id')->unsigned()->index();
+            $table->foreign('category_id')->references('id')->on('categories');
 
             $table->timestamps();
         });
@@ -39,6 +38,6 @@ class CreateLocationsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('location');
+        Schema::dropIfExists('locations');
     }
 }
