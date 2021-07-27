@@ -178,20 +178,13 @@ class LocationsController extends Controller
                 if (count(Locations::where('id', $id)->get()) != 1) {
 
                     $updateLocation = Locations::findOrFail($id);
-                    $request->input('place');
-                    $request->input('name');
-                    $request->input('description');
-                    $request->input('stars');
-                    $request->input('image');
-                    $request->input('owner_name');
-                    $request->input('owner_phone');
-                    $request->input('category_id');
+
                     $updateLocation->update([
                         'place' => $request->input('place'),
                         'name' => $request->input('name'),
                         'description' => $request->input('description'),
                         'stars' => $request->input('stars'),
-                        'image' => $request->input('image'),
+                        'image' => $path,
                         'owner_name' => $request->input('owner_name'),
                         'owner_phone' => $request->input('owner_phone'),
                         'category_id' => $request->input('category_id')
@@ -234,11 +227,29 @@ class LocationsController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Customer  $customer
+     * @param  \App\Models\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy()
+    public function delteById(Request $request)
     {
-        dd('je suis update byid');
+        $request->validate([
+            'id' => 'required'
+        ]);
+        $id = $request->id;
+        $del_cus = Locations::find($id)->delete();
+
+        if ($del_cus) {
+
+            return response()->json([
+                'type' => 'success',
+                'message' => 'the delete is successfull'
+            ], 200, [], JSON_NUMERIC_CHECK);
+        } else {
+
+            return response()->json([
+                'type' => 'error',
+                'message' => 'a problem was find when one wanted delete'
+            ], 200, [], JSON_NUMERIC_CHECK);
+        }
     }
 }
