@@ -1,13 +1,17 @@
 <?php
 
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ReserveController;
-use App\Http\Controllers\CategoriesController;
-use App\Http\Controllers\CustomersController;
-use App\Http\Controllers\LikedlocationsController;
-use App\Http\Controllers\locationsController;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UsersController;
+use App\Http\Controllers\ReserveController;
+use App\Http\Controllers\locationsController;
+use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\NoteAverageController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\LikedLocationsController;
+use PhpParser\Parser\Tokens;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,59 +32,70 @@ use Illuminate\Http\Request;
  * 
  * routes concernant le client
  */
+Route::get('token', function (Request $request) {
+    return $request->create_token("yves")->toplaintext();
+});
+Route::post('user/register', [UsersController::class, 'register'])->name('user.register');
+Route::post('user/login', [UsersController::class, 'login'])->name('user.login');
+Route::get('user/logout', [UsersController::class, 'logout'])->name('user.logout');
+Route::post('locations/create', [locationsController::class, 'create'])->name('locations.create');
+Route::post('user/forgotPassword', [UsersController::class, 'forgotPassword'])->middleware('guest')->name('password.request');
+Route::post('user/resetPassword/{token}', [UsersController::class, 'resetPassword($token)'])->middleware('guest')->name('password.reset');
+Route::post('categories/create', [CategoriesController::class, 'create'])->name('categories.create');
+Route::get('locations/getLocationsWithCategory', [locationsController::class, 'getLocationsWithCategory'])->name('locations.getLocationsWithCategory');
+Route::get('locations/getLocationBycategoriesId', [locationsController::class, 'getLocationBycategoriesId'])->name('locations.getLocationBycategoriesId');
+Route::post('locations/update', [locationsController::class, 'update'])->name('locations.update');
+Route::delete('locations/delete', [locationsController::class, 'delete'])->name('locations.delete');
+Route::get('locations/storeLike', [locationsController::class, 'storeLike'])->name('locations.storeLike');
+Route::get('locations/getFavoriteLocation', [locationsController::class, 'getFavoriteLocation']);
+Route::get('locations/getNotFavoriteLocation', [locationsController::class, 'getNotFavoriteLocation']);
+Route::get('user/getUsers', [UsersController::class, 'getUsers'])->name('Users.getUsers');
+Route::get('user/getUserById', [UsersController::class, 'getUserById'])->name('user.getUserById');
+Route::post('user/update', [UsersController::class, 'update'])->name('User.update');
+Route::delete('user/delete', [UsersController::class, 'delete'])->name('user.delete');
+Route::post('user/update_avatar', [UsersController::class, 'update_avatar'])->name('user.update_avatar');
+Route::get('categories/getAll', [categoriesController::class, 'getAll'])->name('categories.getAll');
+Route::get('categories/getCategoryWithLocations', [categoriesController::class, 'getCategoryWithLocations'])->name('categories.getCategoryWithLocations');
+Route::post('categories/update', [categoriesController::class, 'update'])->name('categories.update');
+Route::delete('categories/delete', [categoriesController::class, 'delete'])->name('categories.delete');
+Route::get('likedlocations/liker', [LikedLocationsController::class, 'liker'])->name('LikedLocationsController.liker');
+Route::post('reserve/reserve', [ReserveController::class, 'reserve'])->name('reserve.reserve');
+Route::get('reserve/confirm_reserve', [ReserveController::class, 'confirm_reserve'])->name('reserve.confirm_reserve');
+Route::get('reserve/getAll', [ReserveController::class, 'getAll'])->name('reserve.getAll');
+Route::delete('reserve/refuseReserve', [ReserveController::class, 'refuseReserve'])->name('reserve.refuseReserve');
+Route::get('reserve/updateStatusForEndReserve', [ReserveController::class, 'updateStatusForEndReserve'])->name('reserve.updateStatusForEndReserve');
+Route::get('note/makeNote', [NoteAverageController::class, 'makeNote'])->name('NoteAverage.makeNote');
+Route::get('notification/getNotificationsCustomers', [NotificationController::class, 'getNotificationsCustomers'])->name('Notification.getNotificationsCustomers');
+Route::get('notification/getNotificationsAdmin', [NotificationController::class, 'getNotificationsAdmin'])->name('Notification.getNotificationsAdmin');
+Route::get('notification/readNotification', [NotificationController::class, 'readNotification'])->name('Notification.readNotification');
+
 Route::middleware(['auth:sanctum'])->group(function () {
 });
-Route::prefix('v1')->group(function () {
-    Route::post('customer/create', [CustomersController::class, 'create'])->name('customer.create');
-    Route::post('customer/showAll', [CustomersController::class, 'showAll'])->name('customer.showAll');
-    Route::post('customer/showById', [CustomersController::class, 'showById'])->name('customer.showById');
-    Route::put('customer/updateById', [CustomersController::class, 'updateById'])->name('customer.updateById');
-    Route::delete('customer/deleteById', [CustomersController::class, 'deleteById'])->name('customer.deleteById');
-    Route::delete('customer/destroy', [CustomersController::class, 'destroy'])->name('customer.destroy');
-    Route::post('customer/update_avatar', [CustomersController::class, 'update_avatar'])->name('customer.update_avatar');
-});
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
+
+
+
+
+
+
+
+
+// Route::prefix('v4')->group(function () {
+
+
+//     Route::get('reserve/confirm_reserve', [ReserveController::class, 'confirm_reserve'])->name('reserve.confirm_reserve');
+
+  
+//     Route::get('reserve/showByCustomerId', [ReserveController::class, 'showByCustomerId']);
+
 // });
-
-// routes concernant les emplacements
-Route::prefix('v2')->group(function () {
-
-    Route::post('locations/create', [locationsController::class, 'create']);
-    Route::get('locations/showAll', [locationsController::class, 'showAll']);
-    Route::post('locations/showBycategoriesId', [locationsController::class, 'showBycategoriesId']);
-    // Route::put('locations/updateById', [locationsController::class, 'updateById']);
-    Route::delete('locations/deleteById', [locationsController::class, 'deleteById']);
-});
-
-//routes concernant les categories
-Route::prefix('v3')->group(function () {
-
-    Route::post('categories/create', [CategoriesController::class, 'create']);
-    Route::get('categories/showAll', [categoriesController::class, 'showAll']);
-    Route::get('categories/showById', [categoriesController::class, 'showById']);
-    Route::put('categories/updateById', [categoriesController::class, 'updateById']);
-    Route::delete('categories/deleteById', [categoriesController::class, 'deleteById']);
-});
-
-///routes concernant les categories
-Route::prefix('v4')->group(function () {
-
-    Route::get('reserve/create', [ReserveController::class, 'create'])->name('reserve.create');
-    Route::get('reserve/confirm_reserve', [ReserveController::class, 'confirm_reserve'])->name('reserve.confirm_reserve');
-
-    Route::get('reserve/showAll', [ReserveController::class, 'showAll']);
-    Route::get('reserve/showByCustomerId', [ReserveController::class, 'showByCustomerId']);
-    Route::delete('reserve/deleteById', [ReserveController::class, 'deleteById']);
-});
 //routes pour les emplacements aimés
 
 
 // Route::prefix('v5')->group(function () {
 
 //     Route::resource('likedlocations', LikedlocationsController::class);
-//     Route::post('likedlocations/create', [LikedlocationsController::class, 'create']);
+
 //     Route::post('likedlocations/showAll', [LikedlocationsController::class, 'showAll']);
 //     Route::post('likedlocations/showBylocationsId', [LikedlocationsController::class, 'showById']);
 //     Route::put('likedlocations/update', [LikedlocationsController::class, 'update']);

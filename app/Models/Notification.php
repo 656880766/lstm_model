@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Notification extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'description',
+        'location_name',
+        'sender_id',
+        'receiver_id'
+
+    ];
 }

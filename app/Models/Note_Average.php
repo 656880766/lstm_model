@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class Liked_Locations extends Model
+class Note_Average extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'customer_id',
-        'location_id'
+        'location_id',
+        'note'
     ];
-    public $table = 'Liked_Location';
+    protected $table = 'note_average';
 }

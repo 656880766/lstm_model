@@ -8,78 +8,70 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
+     * recupere toutes les notification des clients.
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function getNotificationsCustomers(Request $request)
     {
-        //
+        $request->validate([
+            'customer_id' => 'required|numeric'
+        ]);
+        $customer_id = $request->customer_id;
+
+        $notifs =  Notification::select('description', 'location_name', 'created_at', 'status')->where('receiver_id', $customer_id)->get();
+        $numNotifs = count(Notification::where('receiver_id',  $customer_id)->where('status', 0)->get());
+
+        return response()->json([
+            'type' => 'success',
+            'data' => $notifs,
+            'DoesNotReads' => $numNotifs
+        ], 200);
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
+     * recupere toutes les notification de l'admin.
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function getNotificationsAdmin(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'admin_id' => 'required|numeric'
+        ]);
+        $admin_id = $request->admin_id;
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+        $notifs =  Notification::select('description', 'location_name', 'created_at', 'status')->where('receiver_id', $admin_id)->get();
+        return response()->json([
+            'type' => 'success',
+            'data' => $notifs
+        ], 200);
     }
-
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Notification  $notification
+     * lire une notification.
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function show(Notification $notification)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Notification  $notification
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Notification $notification)
+    public function readNotification(Request $request)
     {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Notification  $notification
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Notification $notification)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Notification  $notification
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Notification $notification)
-    {
-        //
+        $request->validate([
+            'id' => 'required|numeric'
+        ]);
+        if (count(Notification::where('id', $request->id)->get()) != 0) {
+            $read = Notification::find($request->id);
+            $read->status = 1;
+            $read->save();
+            return response()->json(
+                ['type' => 'read'],
+                200
+            );
+        } else {
+            return response()->json(
+                ['type' => 'error', 'message' => 'this notification is not exist'],
+                200
+            );
+        }
     }
 }

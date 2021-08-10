@@ -25,21 +25,22 @@ class Locations extends Model
     ];
 
     protected $foreignKey = ['category_id'];
-    protected $appends = ['categoryname'];
+    // protected $appends = ['categoryname'];
 
-    public function category()
+    public  function category()
     {
-        // dd($this->belongsTo(Categories::class));
-        $cat = Categories::where('id', $this->attributes['category_id'])->get();
-        return $cat;
+        return  $this->belongsTo(Categories::class);
     }
+    //     $cat = Categories::where('id', $this->attributes['category_id'])->get();
+    //     return $cat;
+    // }
 
-    public function getCategoryNameAttribute()
-    {
-        $cat = $this->category();
-        if (isset($cat[0])) {
-            return $cat[0]->name;
-        }
-        return '';
-    }
+    // public function getCategoryNameAttribute()
+    // {
+    //     $cat = $this->category();
+    //     if (isset($cat[0])) {
+    //         return $cat[0]->name;
+    //     }
+    //     return '';
+    // }
 }

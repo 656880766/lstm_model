@@ -16,7 +16,7 @@ class CreateLikedLocationTable extends Migration
         Schema::create('liked_location', function (Blueprint $table) {
             $table->bigInteger('customer_id')->index();
             $table->bigInteger('location_id')->index();
-            $table->foreign('customer_id')->references('id')->on('customers');
+            $table->foreign('customer_id')->references('id')->on('users');
             $table->foreign('location_id')->references('id')->on('locations');
             $table->timestamps();
         });

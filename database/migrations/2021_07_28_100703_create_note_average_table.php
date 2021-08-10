@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateReserveTable extends Migration
+class CreateNoteAverageTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,14 @@ class CreateReserveTable extends Migration
      */
     public function up()
     {
-        Schema::create('reserves', function (Blueprint $table) {
+        Schema::create('note_average', function (Blueprint $table) {
             $table->increments('id');
-            $table->bigInteger('customer_id')->unsigned()->index();
+            $table->bigInteger('user_id')->unsigned()->index();
             $table->bigInteger('location_id')->unsigned()->index();
-            $table->date('start_day')->default('0000-00-00');
-            $table->date('finish_day')->default('0000-00-00');
-            $table->String('status')->default('0');
-            $table->foreign('customer_id')->references('id')->on('users');
+            $table->bigInteger('note')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('location_id')->references('id')->on('locations');
+
             $table->timestamps();
         });
     }
@@ -33,6 +32,6 @@ class CreateReserveTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('reserves');
+        Schema::dropIfExists('note_average');
     }
 }

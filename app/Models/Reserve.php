@@ -11,11 +11,17 @@ class Reserve extends Model
     use HasFactory;
     protected $fillable = [
         'customer_id',
-        'location_id'
+        'location_id',
+        'start_day',
+        'finish_day'
     ];
 
-    public function customer()
+    public function user()
     {
-        $this->belongsTo(Customers::class);
+        $this->belongsTo(User::class);
+    }
+    public function locations()
+    {
+        $this->belongsTo(Locations::class);
     }
 }

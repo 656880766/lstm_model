@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Locations;
 use App\Models\Categories;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -11,7 +12,7 @@ class CategoriesController extends Controller
 {
 
     /**
-     * Store a newly created resource in storage.
+     * creer une categorie.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -70,11 +71,11 @@ class CategoriesController extends Controller
 
 
 
-    /**
+    /** recuperer toutes les catégories 
      * Display a listing of the resource.
      * @return \Illuminate\Http\Response
      */
-    public function showAll()
+    public function getAll()
     {
         $catAll = Categories::all();
 
@@ -84,45 +85,44 @@ class CategoriesController extends Controller
             'data'  => $catAll
         ], 200, [], JSON_NUMERIC_CHECK);
     }
-
-
     /**
-     * Display a listing of the resource.
-     * * @param  \Illuminate\Http\Request  $request
+     * recuperer une categories et le emplacements associés .
      * @return \Illuminate\Http\Response
+     * @param Request $request
      */
-
-    public function showById(Request $request)
+    public function getCategoryWithLocations(Request $request)
     {
-        $request->validate(
-            [
-                'id' => 'required'
-            ]
-        );
-        if (count(Categories::findOrFail($request->id)->get()) == 0) {
+        $request->validate([
+            'id' => 'required|max:100'
+        ]);
+        $locations = Locations::select('name', 'description', 'note_average', 'stars', 'image', 'owner_phone')->where('category_id', $request->id)->get()->toArray();
 
+        $category = Categories::select('name')->where('id', $request->id)->get();
+
+        if (count($category) === 0) {
             return response()->json([
                 'type' => 'error',
-                'message' => 'the list of categories is empty!!!'
-            ], 200, [], JSON_NUMERIC_CHECK);
+                'message' => 'this category is not exist'
+
+            ], 404);
         } else {
-            $catById = Categories::findOrFail($request->id);
             return response()->json([
-                'type' => 'sucess',
-                'message' => 'this category is:',
-                'data' => $catById
-            ], 200, [], JSON_NUMERIC_CHECK);
+                'type' => 'success',
+                'category_name' => $category,
+                'locations of this category' => $locations
+            ], 200);
         }
     }
 
 
+
     /**
-     * Update the specified resource in storage.
+     * modifier une categorie.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function updateById(Request $request)
+    public function update(Request $request)
     {
         $request->validate(
             [
@@ -181,15 +181,13 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * supprimer une categorie.
      *
      * @param  \App\Models\(Request $request
      * @return \Illuminate\Http\Response
      */
 
-
-
-    public function deleteById(Request $request)
+    public function delete(Request $request)
     {
 
         $request->validate([

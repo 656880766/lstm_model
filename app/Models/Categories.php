@@ -18,6 +18,8 @@ class Categories extends Model
 
     ];
 
+    // private $foreignkey = ['category_id'];
+
 
 
     public function locations()

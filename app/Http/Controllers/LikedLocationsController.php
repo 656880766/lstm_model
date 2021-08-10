@@ -2,71 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Liked_Location;
+use App\Models\User;
+use App\Models\Locations;
 use Illuminate\Http\Request;
+use App\Models\Liked_Locations;
 
 class LikedLocationsController extends Controller
 {
     /**
-     * Store a newly created resource in storage.
-     *
+     * Liker une categorie.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function liker(Request $request)
     {
 
-        dd('jesuis la creation delocation');
-    }
+        $request->validate([
+            'customer_id' => 'required|numeric',
+            'location_id' => 'required|numeric'
+        ]);
+
+        if (count(Liked_Locations::where('customer_id', $request->customer_id)
+            ->where('location_id', $request->location_id)->get()) == 0) {
+            $liker = Liked_Locations::create([
+                'customer_id' => $request->customer_id,
+                'location_id' => $request->location_id
+
+            ]);
+            $countLikes = (int)count(Liked_Locations::where('location_id', $request->location_id)->get());
+            $location = Locations::find($request->location_id);
+            $location->likes = $countLikes;
+            $location->save();
+
+            $userLike = User::select('name')->where('id', $request->customer_id)->get();
+            $locationLike = Locations::select('name')->where('id', $request->location_id)->get();
 
 
+            return response()->json([
+                'type' => 'success',
+                'name' => $userLike,
+                'location liked' =>  $locationLike
+            ], 200);
+        } else {
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function showAll()
-    {
-        dd('je suis le showAll');
-    }
-
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-
-    public function showByLocationId()
-    {
-        dd('je suis showBylocationId');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Customer  $customer
-     * @return \Illuminate\Http\Response
-     */
-    public function updateById()
-    {
-
-        dd('je suis update by Id');
-    }
-
-
-
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Customer  $customer
-     * @return \Illuminate\Http\Response
-     */
-    public function destroyById()
-    {
-        dd('je suis update byid');
+            Liked_Locations::where('customer_id', $request->customer_id)
+                ->where('location_id', $request->location_id)->delete();
+            $userLike = User::select('name')->where('id', $request->customer_id)->get();
+            $locationLike = Locations::select('name')->where('id', $request->location_id)->get();
+            $countLikes = (int)count(Liked_Locations::where('location_id', $request->location_id)->get());
+            $location = Locations::find($request->location_id);
+            $location->likes = $countLikes;
+            $location->save();
+            return response()->json([
+                'type' => 'dislike',
+                'name' => $userLike,
+                'location disliked' =>  $locationLike
+            ], 200);
+        }
     }
 }
