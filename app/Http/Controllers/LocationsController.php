@@ -3,17 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categories;
+use App\Models\Liked_Locations;
 use App\Models\Locations;
+use App\Models\Reserve;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request as FacadesRequest;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use phpDocumentor\Reflection\Location;
 
 class LocationsController extends Controller
 {
 
     /**
-     * Store a newly created resource in storage.
+     * enregistrer une categorie.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -81,62 +86,47 @@ class LocationsController extends Controller
         }
     }
 
-
-
-
-
-
-
-
     /**
-     * Display a listing of the resource.
+     * recuperer les emplacements par categorie.
      *
      * @return \Illuminate\Http\Response
      */
-    public function showAll()
+    public function getLocationsWithCategory()
     {
 
 
-        $post_location = Locations::select(
-            [
-                'place',
-                'name',
-                'note_average',
-                'stars',
-                'image',
-                'state',
-                'owner_name',
-                'owner_phone',
-                'category_id'
+        // $post_location = Locations::all();
+        // // dd($post_location);
+        // $category  = Categories::all();
+        // $post_location->category()->associate($category);
+        $post_locations = Locations::with('category')->get();
 
-            ]
-        )->get();
 
         // dd($post_location);
         return response()->json([
             "type" => "Success",
             "message" => "list of locations",
-            "data"  => $post_location
+            "data"  => $post_locations
+
         ], 200, [], JSON_NUMERIC_CHECK);
-        // $category  = new Categories();
-        // $post_location->category()->associate(category);
-        // $post_locations = Locations::with($category )->get();
     }
 
 
     /**
-     * Display a listing of the resource.
-     *
+     * recuperer une location et sa categorie associée.
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
 
-    public function showBycategoriesId(Request $request)
+    public function getLocationBycategoriesId(Request $request)
     {
         $request->validate([
             'id' => 'required|numeric'
         ]);
 
         $post_location = Locations::find($request->id);
+        $post_location->load('category')->toArray();
+        // $post_location->select('category->name');
 
 
         return response()->json([
@@ -151,13 +141,13 @@ class LocationsController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * modifier les informations sur un emplacement.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function updateById(Request $request)
+    public function update(Request $request)
     {
 
         $request->validate([
@@ -175,23 +165,20 @@ class LocationsController extends Controller
 
                 $path = Storage::putFile('location_image', $file);
 
-                if (count(Locations::where('id', $id)->get()) != 1) {
+                if (count(Locations::where('id', $id)->get()) != 0) {
 
                     $updateLocation = Locations::findOrFail($id);
 
-                    $updateLocation->update([
-                        'place' => $request->input('place'),
-                        'name' => $request->input('name'),
-                        'description' => $request->input('description'),
-                        'stars' => $request->input('stars'),
-                        'image' => $path,
-                        'owner_name' => $request->input('owner_name'),
-                        'owner_phone' => $request->input('owner_phone'),
-                        'category_id' => $request->input('category_id')
+                    $updateLocation->place = $request->input('place');
+                    $updateLocation->name = $request->input('name');
+                    $updateLocation->description = $request->input('description');
+                    $updateLocation->stars = $request->input('stars');
+                    $updateLocation->image = $path;
+                    $updateLocation->owner_name = $request->input('owner_name');
+                    $updateLocation->owner_phone = $request->input('owner_phone');
+                    $updateLocation->category_id = $request->input('category_id');
+                    $updateLocation->save();
 
-
-
-                    ]);
                     return Response()->json([
                         'type' => 'success',
                         'message' => 'a  location has been update',
@@ -221,16 +208,20 @@ class LocationsController extends Controller
         }
     }
 
-
-
-
+     /**
+     * modifier les informations sur un emplacement.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Customer  $customer
+     * @return \Illuminate\Http\Response
+     */
     /**
-     * Remove the specified resource from storage.
+     *supprimer un emplacement.
      *
      * @param  \App\Models\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function delteById(Request $request)
+    public function delete(Request $request)
     {
         $request->validate([
             'id' => 'required'
@@ -250,6 +241,97 @@ class LocationsController extends Controller
                 'type' => 'error',
                 'message' => 'a problem was find when one wanted delete'
             ], 200, [], JSON_NUMERIC_CHECK);
+        }
+    }
+    /**
+     * enregistrer le nombre de likes.
+     *
+     * @param  \App\Models\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public static function storeLike(Request $request)
+    {
+
+        $request->validate([
+            'id' => 'required|numeric'
+        ]);
+        $countLikes = (int)count(Liked_Locations::where('location_id', $request->id)->get());
+        $location = Locations::find($request->id);
+        $location->likes = $countLikes;
+        $location->save();
+    }
+    /**
+     * recuperer les emplacements favoris.
+     *
+     * @param  \App\Models\Request $request
+     * @return \Illuminate\Http\Response
+     */
+
+    public function getFavoriteLocation()
+    {
+
+
+        $location = DB::select('select name,description, likes from locations where likes > ? order by likes desc', ['0']);
+
+        return response()->json([
+            'type' => 'success',
+            'message' => 'this list of favorite locations are:',
+            'data' =>  $location
+
+        ], 200);
+    }
+    /**
+     * recuperer les emplacements ignorer.
+     * @return \Illuminate\Http\Response
+     */
+
+    public function getNotFavoriteLocation()
+    {
+
+
+        $location = DB::select('select name,description, likes from locations where likes = ? order by likes desc', ['0']);
+
+        return response()->json([
+            'type' => 'success',
+            'message' => 'this list of  not favorite locations are:',
+            'data' =>  $location
+
+        ], 200);
+    }
+    /**
+     * 
+     * recuperer les utilsateurs ayant reserver un emplacement precis.
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+
+    public function getCustomerReserveByLocation(Request $request)
+    {
+        $request->validate(
+            [
+                'location_id' => 'required|numeric'
+            ]
+        );
+
+        if (count(Locations::where('location_id', $request->location_id)->get()) != 0) {
+
+            $result = DB::select('select count(customer_id) from reserves where location_id = ? and status = ? or ?', [$request->location_id, 1, 2]);
+            return response()->json(
+                [
+                    'type' => 'success',
+                    'data' => $result
+                ],
+                200
+
+            );
+        } else {
+            return response()->json(
+                [
+                    'type' => 'error',
+                    'message' => 'this location does not exist'
+                ],
+                404
+            );
         }
     }
 }
