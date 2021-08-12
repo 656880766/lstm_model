@@ -39,28 +39,37 @@ Route::post('user/register', [UsersController::class, 'register'])->name('user.r
 Route::post('user/login', [UsersController::class, 'login'])->name('user.login');
 Route::get('user/logout', [UsersController::class, 'logout'])->name('user.logout');
 Route::post('locations/create', [locationsController::class, 'create'])->name('locations.create');
-Route::post('user/forgotPassword', [UsersController::class, 'forgotPassword'])->middleware('guest')->name('password.request');
+Route::post('user/forgotPassword', [UsersController::class, 'forgotPassword'])->middleware('guest')->name('password.sent');
 Route::post('user/resetPassword/{token}', [UsersController::class, 'resetPassword($token)'])->middleware('guest')->name('password.reset');
+Route::get('user/getReservationsByUser', [UsersController::class, 'getReservationsByUser'])->name('user.getReservationsByUser');
+Route::get('user/getUserById', [UsersController::class, 'getUserById'])->name('user.getUserById');
+Route::delete('user/delete', [UsersController::class, 'delete'])->name('user.delete');
+Route::get('user/getUsers', [UsersController::class, 'getUsers'])->name('Users.getUsers');
+Route::post('user/update_avatar', [UsersController::class, 'update_avatar'])->name('user.update_avatar');
+Route::post('user/update', [UsersController::class, 'update'])->name('User.update');
 Route::post('categories/create', [CategoriesController::class, 'create'])->name('categories.create');
-Route::get('locations/getLocationsWithCategory', [locationsController::class, 'getLocationsWithCategory'])->name('locations.getLocationsWithCategory');
+Route::get('categories/getAll', [categoriesController::class, 'getAll'])->name('categories.getAll');
 Route::get('locations/getLocationBycategoriesId', [locationsController::class, 'getLocationBycategoriesId'])->name('locations.getLocationBycategoriesId');
+Route::get('locations/getLocationsWithCategory', [locationsController::class, 'getLocationsWithCategory'])->name('locations.getLocationsWithCategory');
+Route::post('locations/create', [locationsController::class, 'create'])->name('locations.create');
+
 Route::post('locations/update', [locationsController::class, 'update'])->name('locations.update');
 Route::delete('locations/delete', [locationsController::class, 'delete'])->name('locations.delete');
 Route::get('locations/storeLike', [locationsController::class, 'storeLike'])->name('locations.storeLike');
 Route::get('locations/getFavoriteLocation', [locationsController::class, 'getFavoriteLocation']);
 Route::get('locations/getNotFavoriteLocation', [locationsController::class, 'getNotFavoriteLocation']);
-Route::get('user/getUsers', [UsersController::class, 'getUsers'])->name('Users.getUsers');
-Route::get('user/getUserById', [UsersController::class, 'getUserById'])->name('user.getUserById');
-Route::post('user/update', [UsersController::class, 'update'])->name('User.update');
-Route::delete('user/delete', [UsersController::class, 'delete'])->name('user.delete');
-Route::post('user/update_avatar', [UsersController::class, 'update_avatar'])->name('user.update_avatar');
-Route::get('categories/getAll', [categoriesController::class, 'getAll'])->name('categories.getAll');
+
 Route::get('categories/getCategoryWithLocations', [categoriesController::class, 'getCategoryWithLocations'])->name('categories.getCategoryWithLocations');
 Route::post('categories/update', [categoriesController::class, 'update'])->name('categories.update');
 Route::delete('categories/delete', [categoriesController::class, 'delete'])->name('categories.delete');
 Route::get('likedlocations/liker', [LikedLocationsController::class, 'liker'])->name('LikedLocationsController.liker');
 Route::post('reserve/reserve', [ReserveController::class, 'reserve'])->name('reserve.reserve');
 Route::get('reserve/confirm_reserve', [ReserveController::class, 'confirm_reserve'])->name('reserve.confirm_reserve');
+
+
+Route::get('reserve/getReservationsByLocation', [ReserveController::class, 'getReservationsByLocation'])->name('reserve.getReservationsByLocation');
+Route::delete('reserve/destroy', [ReserveController::class, 'destroy'])->name('reserve.destroy');
+Route::get('reserve/showByCustomerId', [ReserveController::class, 'showByCustomerId'])->name('reserve.showByCustomerId');
 Route::get('reserve/getAll', [ReserveController::class, 'getAll'])->name('reserve.getAll');
 Route::delete('reserve/refuseReserve', [ReserveController::class, 'refuseReserve'])->name('reserve.refuseReserve');
 Route::get('reserve/updateStatusForEndReserve', [ReserveController::class, 'updateStatusForEndReserve'])->name('reserve.updateStatusForEndReserve');
