@@ -87,6 +87,7 @@ return [
         'address' => env('MAIL_FROM_ADDRESS', 'yvesfoyet@gmail.com'),
         'name' => env('MAIL_FROM_NAME', null),
     ],
+    'reply_to' => ['address' => 'yvesfoyet@gmail.com', 'name' => null],
 
     /*
     |--------------------------------------------------------------------------

@@ -49,7 +49,6 @@ class LocationsController extends Controller
                         'note_average' => $request->input('note_average'),
                         'stars' => $request->input('stars'),
                         'image' => $path,
-                        'state' => $request->input('state'),
                         'owner_name' => $request->input('owner_name'),
                         'owner_phone' => $request->input('owner_phone'),
                         'category_id' => $request->input('category_id')
@@ -208,7 +207,7 @@ class LocationsController extends Controller
         }
     }
 
-     /**
+    /**
      * modifier les informations sur un emplacement.
      *
      * @param  \Illuminate\Http\Request  $request
