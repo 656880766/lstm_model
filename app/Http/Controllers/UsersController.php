@@ -42,6 +42,7 @@ class UsersController extends Controller
                     'password' => Hash::make($request->input('password'))
 
                 ]);
+
                 return Response()->json([
                     'type' => 'success',
                     'message' => 'user register successfully',
@@ -92,11 +93,15 @@ class UsersController extends Controller
                 'message' => 'invalid password'
             ]);
         } else {
+            $role = DB::select("select role from users where email= ?", [$request->email]);
+            $role = $role[0]->role;
+
             $token =  $user->createToken('yvesFoyetTokenLogin')->plainTextToken;
             return response()->json([
                 'type' => 'success',
                 'message' => 'user connected successfully',
                 'user' => $user,
+                'role' => (int)$role,
                 'token' => $token
             ], 200);
         }
