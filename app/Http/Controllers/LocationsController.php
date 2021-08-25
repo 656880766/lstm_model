@@ -27,11 +27,11 @@ class LocationsController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'image' => 'required|file|image'
+            'cover' => 'required|file|image'
         ]);
 
         $id = $request->id;
-        $file = $request->image;
+        $file = $request->cover;
 
         if (File::size($file) < 1000000) {
 
@@ -151,11 +151,11 @@ class LocationsController extends Controller
 
         $request->validate([
             'id' => 'required',
-            'image' => 'required|file|image'
+            'cover' => 'required|file|image'
         ]);
 
         $id = $request->id;
-        $file = $request->image;
+        $file = $request->cover;
         if (File::size($file) < 1000000) {
 
             $extensionArray = ["image/jpg", "image/jpeg", "image/png"];
