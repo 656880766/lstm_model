@@ -41,12 +41,13 @@ class CategoriesController extends Controller
                     return Response()->json([
 
                         'type' => 'success',
-                        'message' => 'add is sucessfull',
+                        'message' => 'adding category is sucessfull',
                         'data' => $post_cat
                     ], 200, [], JSON_NUMERIC_CHECK);
                 } else {
 
                     return Response()->json([
+                        "type" => "error",
                         "message" => "The given data was invalid.",
                         "errors" => [
                             "name" =>  [
@@ -126,7 +127,7 @@ class CategoriesController extends Controller
     {
         $request->validate(
             [
-                'blanket' => 'required|file|image',
+                'blanket' => 'file|image',
                 'id' => 'required'
 
             ]
@@ -135,50 +136,79 @@ class CategoriesController extends Controller
 
         $id = $request->id;
 
-        $file = $request->blanket;
+        if ($request->blanket) {
 
-        if (FILE::size($file) < 1000000) {
-            $extensionArray = ["image/jpg", "image/jpeg", "image/png"];
-            if (in_array(File::mimeType($file), $extensionArray)) {
-                $path = Storage::putFile('Categories_image', $file);
-                if (count(Categories::where('id', $request->id)->get()) != 0) {
-                    $post_cat = Categories::find($id);
-                    $post_cat->update([
-                        "name" => $request->input('name'),
-                        'blanket' => $path,
-                        "description" => $request->input('description')
+            $file = $request->blanket;
 
-                    ]);
-                    return Response()->json([
+            if (FILE::size($file) < 1000000) {
+                $extensionArray = ["image/jpg", "image/jpeg", "image/png"];
+                if (in_array(File::mimeType($file), $extensionArray)) {
+                    $path = Storage::putFile('Categories_image', $file);
+                    if (count(Categories::where('id', $request->id)->get()) != 0) {
+                        $post_cat = Categories::find($id);
+                        $post_cat->update([
+                            "name" => $request->input('name'),
+                            'blanket' => $path,
+                            "description" => $request->input('description')
 
-                        'type' => 'success',
-                        'message' => 'update is sucessfull',
-                        'data' => $post_cat
-                    ], 200, [], JSON_NUMERIC_CHECK);
-                } else {
+                        ]);
+                        return Response()->json([
 
-                    return Response()->json([
-                        "message" => "The given data was invalid.",
-                        "errors" => [
-                            "name" =>  [
-                                "this category id is not exist."
+                            'type' => 'success',
+                            'message' => 'update is sucessfull',
+                            'data' => $post_cat
+                        ], 200, [], JSON_NUMERIC_CHECK);
+                    } else {
+
+                        return Response()->json([
+                            "message" => "The given data was invalid.",
+                            "errors" => [
+                                "name" =>  [
+                                    "this category id is not exist."
+                                ]
                             ]
-                        ]
+                        ], 200, [], JSON_NUMERIC_CHECK);
+                    }
+                } else {
+                    return response()->json([
+                        'type' => "error",
+                        'message' => "l'extension de l'image n'es pas autorisé"
                     ], 200, [], JSON_NUMERIC_CHECK);
                 }
             } else {
                 return response()->json([
                     'type' => "error",
-                    'message' => "l'extension de l'image n'es pas autorisé"
+                    'message' => "votre image est trop grande"
                 ], 200, [], JSON_NUMERIC_CHECK);
             }
+        }
+        if (count(Categories::where('id', $request->id)->get()) != 0) {
+            $post_cat = Categories::find($id);
+            $post_cat->update([
+                "name" => $request->input('name'),
+                "description" => $request->input('description')
+
+            ]);
+            return Response()->json([
+
+                'type' => 'success',
+                'message' => 'update is sucessfull',
+                'data' => $post_cat
+            ], 200, [], JSON_NUMERIC_CHECK);
         } else {
-            return response()->json([
-                'type' => "error",
-                'message' => "votre image est trop grande"
+
+            return Response()->json([
+                "message" => "The given data was invalid.",
+                "errors" => [
+                    "name" =>  [
+                        "this category id is not exist."
+                    ]
+                ]
             ], 200, [], JSON_NUMERIC_CHECK);
         }
     }
+
+
 
     /**
      * supprimer une categorie.

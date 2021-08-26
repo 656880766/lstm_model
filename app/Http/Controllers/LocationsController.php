@@ -151,58 +151,90 @@ class LocationsController extends Controller
 
         $request->validate([
             'id' => 'required',
-            'cover' => 'required|file|image'
+            'cover' => 'file|image'
         ]);
 
         $id = $request->id;
-        $file = $request->cover;
-        if (File::size($file) < 1000000) {
 
-            $extensionArray = ["image/jpg", "image/jpeg", "image/png"];
+        if ($request->cover) {
 
-            if (in_array(File::mimeType($file), $extensionArray)) {
+            $file = $request->cover;
+            if (File::size($file) < 1000000) {
 
-                $path = Storage::putFile('location_image', $file);
+                $extensionArray = ["image/jpg", "image/jpeg", "image/png"];
 
-                if (count(Locations::where('id', $id)->get()) != 0) {
+                if (in_array(File::mimeType($file), $extensionArray)) {
 
-                    $updateLocation = Locations::findOrFail($id);
+                    $path = Storage::putFile('location_image', $file);
 
-                    $updateLocation->place = $request->input('place');
-                    $updateLocation->name = $request->input('name');
-                    $updateLocation->description = $request->input('description');
-                    $updateLocation->stars = $request->input('stars');
-                    $updateLocation->image = $path;
-                    $updateLocation->owner_name = $request->input('owner_name');
-                    $updateLocation->owner_phone = $request->input('owner_phone');
-                    $updateLocation->category_id = $request->input('category_id');
-                    $updateLocation->save();
+                    if (count(Locations::where('id', $id)->get()) != 0) {
 
-                    return Response()->json([
-                        'type' => 'success',
-                        'message' => 'a  location has been update',
-                        'data' =>  $updateLocation
-                    ], 200, [], JSON_NUMERIC_CHECK);
-                } else {
-                    return Response()->json([
-                        "message" => "The given data was invalid.",
-                        "errors" => [
-                            "name" =>  [
-                                "This location does not  exist"
+                        $updateLocation = Locations::findOrFail($id);
+
+                        $updateLocation->place = $request->input('place');
+                        $updateLocation->name = $request->input('name');
+                        $updateLocation->description = $request->input('description');
+                        $updateLocation->stars = $request->input('stars');
+                        $updateLocation->image = $path;
+                        $updateLocation->owner_name = $request->input('owner_name');
+                        $updateLocation->owner_phone = $request->input('owner_phone');
+                        $updateLocation->category_id = $request->input('category_id');
+                        $updateLocation->save();
+
+                        return Response()->json([
+                            'type' => 'success',
+                            'message' => 'a  location has been update',
+                            'data' =>  $updateLocation
+                        ], 200, [], JSON_NUMERIC_CHECK);
+                    } else {
+                        return Response()->json([
+                            "message" => "The given data was invalid.",
+                            "errors" => [
+                                "name" =>  [
+                                    "This location does not  exist"
+                                ]
                             ]
-                        ]
+                        ], 200, [], JSON_NUMERIC_CHECK);
+                    }
+                } else {
+                    return response()->json([
+                        'type' => "error",
+                        'message' => "l'extension de l'image n'es pas autorisé"
                     ], 200, [], JSON_NUMERIC_CHECK);
                 }
             } else {
                 return response()->json([
                     'type' => "error",
-                    'message' => "l'extension de l'image n'es pas autorisé"
+                    'message' => "votre image est trop grande"
                 ], 200, [], JSON_NUMERIC_CHECK);
             }
+        }
+        if (count(Locations::where('id', $id)->get()) != 0) {
+
+            $updateLocation = Locations::findOrFail($id);
+
+            $updateLocation->place = $request->input('place');
+            $updateLocation->name = $request->input('name');
+            $updateLocation->description = $request->input('description');
+            $updateLocation->stars = $request->input('stars');
+            $updateLocation->owner_name = $request->input('owner_name');
+            $updateLocation->owner_phone = $request->input('owner_phone');
+            $updateLocation->category_id = $request->input('category_id');
+            $updateLocation->save();
+
+            return Response()->json([
+                'type' => 'success',
+                'message' => 'a  location has been update',
+                'data' =>  $updateLocation
+            ], 200, [], JSON_NUMERIC_CHECK);
         } else {
-            return response()->json([
-                'type' => "error",
-                'message' => "votre image est trop grande"
+            return Response()->json([
+                "message" => "The given data was invalid.",
+                "errors" => [
+                    "name" =>  [
+                        "This location does not  exist"
+                    ]
+                ]
             ], 200, [], JSON_NUMERIC_CHECK);
         }
     }
