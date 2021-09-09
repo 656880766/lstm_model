@@ -19,13 +19,13 @@ class NotificationController extends Controller
         ]);
         $customer_id = $request->customer_id;
 
-        $notifs =  Notification::select('description', 'location_name', 'created_at', 'status')->where('receiver_id', $customer_id)->get();
+        $notifs =  Notification::where('receiver_id', $customer_id)->get();
         $numNotifs = count(Notification::where('receiver_id',  $customer_id)->where('status', 0)->get());
 
         return response()->json([
             'type' => 'success',
             'data' => $notifs,
-            'DoesNotReads' => $numNotifs
+            'DoesNotReads' => (int) $numNotifs
         ], 200);
     }
 
@@ -40,8 +40,7 @@ class NotificationController extends Controller
             'admin_id' => 'required|numeric'
         ]);
         $admin_id = $request->admin_id;
-
-        $notifs =  Notification::select('description', 'location_name', 'created_at', 'status')->where('receiver_id', $admin_id)->get();
+        $notifs =  Notification::select('description', 'location_name', 'created_at', 'status')->where('receiver_id', $admin_id)->orderby('status')->get();
         return response()->json([
             'type' => 'success',
             'data' => $notifs
@@ -64,7 +63,7 @@ class NotificationController extends Controller
             $read->status = 1;
             $read->save();
             return response()->json(
-                ['type' => 'read'],
+                ['type' => 'success'],
                 200
             );
         } else {
