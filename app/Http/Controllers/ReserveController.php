@@ -26,11 +26,12 @@ class ReserveController extends Controller
                 'location_id' => 'required|numeric',
                 'start_day' => 'required|date',
                 'finish_day' => 'required|date',
-                'admin_id'  =>  'required'
+                'admin_id'  =>  'required|numeric'
 
             ]
         );
         // dd($request->start_day);
+        $admin_id = $request->admin_id;
         $customer_id = $request->customer_id;
         $location_id = $request->location_id;
 
@@ -49,21 +50,38 @@ class ReserveController extends Controller
                     );
                     $location_name = Locations::find($location_id);
                     $location_name = $location_name->name;
+                    $customer_name = User::select('name')->where('id', $customer_id);
 
                     Notification::create(
                         [
-                            'description' => 'locations request',
+                            'description' => "a customer  made a reservation request",
+                            'customer_name' => $customer_name,
                             'location_name' => $location_name,
                             'sender_id' => $customer_id,
                             'receiver_id' => $request->admin_id
                         ]
                     );
+                    Notification::create(
+                        [
+                            'description' => "you have just made a reservation request for the period  we will get back to you in a maximum of 24 hours",
+                            'period' => "$request->start_day to $request->finish_day  ",
+
+                            'location_name' => $location_name,
+                            'sender_id' => $admin_id,
+                            'receiver_id' => $customer_id
+                        ]
+                    );
+
+
+
+
+
 
 
 
                     $customer = User::find($customer_id);
                     $customer = $customer->name;
-                    $locationReserve =  DB::select('select name from locations where id = ? LIMIT 1', [$location_id]);
+                    $locationReserve =  DB::select('select * from locations where id = ? LIMIT 1', [$location_id]);
 
                     return response()->json([
                         'type' => 'success',
@@ -127,7 +145,7 @@ class ReserveController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function confirm_reserve(Request $request)
+    public function confirm_reserve_admin(Request $request)
     {
         $request->validate([
             'customer_id' => 'required|numeric',
@@ -138,38 +156,37 @@ class ReserveController extends Controller
         $location_id = $request->location_id;
         $admin_id = $request->admin_id;
         if (count(User::where('id', $customer_id)->get()) != 0 && count(Locations::where('id', $location_id)->get()) != 0) {
-            if (count(Locations::where('status', 0)->where('id', $location_id)->get()) != 0) {
-                if (count(Reserve::where('status', 1)->where('id', $location_id)->where('customer_id', $customer_id)->get()) != 0) {
+            if (count(Locations::where('status', 1)->where('id', $location_id)->get()) == 0) {
+                if (count(Reserve::where('status', 1)->where('location_id', $location_id)->where('customer_id', $customer_id)->get()) != 0) {
 
                     return response()->json([
-                        'this confirmation is not possible because this location has been reserved'
+                        'type' => 'error',
+                        'message' => 'this confirmation is not possible because this location has been reserved'
                     ], 403);
-                } else if (count(Reserve::where('location_id', $location_id)->where('customer_id', $customer_id)->limit('1')->get()) == 0) {
-                    return response()->json([
-                        'this confirmation is not possible because this location has not ask'
-                    ], 403);
-                } else {
-                    DB::update('update reserves set status= ? where customer_id =?', ['1', $customer_id]);
-                    DB::update('update locations set status= ? where id =?', ['1', $location_id]);
+                } else  if (count(Reserve::where('status', 1)->where('location_id', $location_id)->where('customer_id', $customer_id)->get()) == 0) {
+
+
+                    DB::update('update reserves set status= ? where location_id =? and  customer_id = ? ', ['1', $location_id, $customer_id]);
                     $location_name = Locations::find($location_id);
-                    $location_name = $location_name->name;
-
+                    $name = $location_name->name;
                     Notification::create(
                         [
-                            'description' => 'reservation confirmed',
-                            'location_name' => $location_name,
+                            'description' => 'your reservation is accepted please confirmed yourself',
+                            'location_name' => $name,
                             'sender_id' => $admin_id,
                             'receiver_id' => $customer_id
                         ]
                     );
 
+
                     return response()->json([
                         'type' => 'success',
-                        'message' => 'your reservation request has been taken into account, we will inform you about the validation'
+                        'message' => 'your reservation request has been accepted'
                     ], 200);
                 }
             } else {
                 return response()->json([
+                    'type' == 'error',
                     'this location is available'
                 ], 403);
             }
@@ -179,6 +196,7 @@ class ReserveController extends Controller
                 'message' => 'customer id or location id are not exists'
             ], 403);
         }
+
 
 
 
@@ -207,6 +225,62 @@ class ReserveController extends Controller
         //         ], 200, [], JSON_NUMERIC_CHECK);
         //     }
     }
+    public function confirm_reserve_user(Request $request)
+    {
+        $request->validate([
+            'customer_id' => 'required|numeric',
+            'location_id' => 'required|numeric',
+            'admin_id' => 'required|numeric'
+        ]);
+        $admin_id = $request->admin_id;
+        $customer_id = $request->customer_id;
+        $location_id = $request->location_id;
+        if (count(User::where('id', $customer_id)->get()) != 0 && count(Locations::where('id', $location_id)->get()) != 0) {
+            if (count(Locations::where('status', 1)->where('id', $location_id)->get()) == 0) {
+                if (count(Reserve::where('status', 1)->where('id', $location_id)->where('customer_id', $customer_id)->get()) == 0) {
+
+                    return response()->json([
+                        'type' => 'error',
+                        'message' => 'this confirmation is not possible because this location has been reserved'
+                    ], 403);
+                } else if (count(Reserve::where('location_id', $location_id)->where('customer_id', $customer_id)->limit('1')->get()) == 0) {
+                    return response()->json([
+                        'type' => 'error',
+                        'message' => 'this confirmation is not possible because this location has not ask'
+                    ], 403);
+                } else {
+
+                    DB::update('update location set status= ? where location_id =?', ['1', $location_id]);
+                    $location_name = Locations::find($location_id);
+                    $name = $location_name->name;
+                    Notification::create(
+                        [
+                            'description' => 'your reservation is confirmed definitly',
+                            'location_name' => $name,
+                            'sender_id' =>  $customer_id,
+                            'receiver_id' =>  $admin_id
+                        ]
+                    );
+
+
+                    return response()->json([
+                        'type' => 'success',
+                        'message' => 'your reservation request has been accepted'
+                    ], 200);
+                }
+            } else {
+                return response()->json([
+                    'type' == 'error',
+                    'this location is available'
+                ], 403);
+            }
+        } else {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'customer id or location id are not exists'
+            ], 403);
+        }
+    }
 
     /**
      * refuser une demande de reservation.
@@ -227,7 +301,7 @@ class ReserveController extends Controller
         $customer_id = $request->customer_id;
         $location_id = $request->location_id;
 
-        if (count(Reserve::where('id', $request->id)->where('status', 0)->get()) != 0) {
+        if (count(Reserve::where('id', $request->id)->where('status', 1)->get()) == 0) {
             $res = Reserve::find($request->id);
             $data =  Reserve::find($request->id);
             $res->status = 3;
@@ -237,7 +311,7 @@ class ReserveController extends Controller
 
             Notification::create(
                 [
-                    'description' => 'reservations failed',
+                    'description' => 'reservations failed please choose another location ',
                     'location_name' => $location_name,
                     'sender_id' => $admin_id,
                     'receiver_id' => $customer_id
@@ -246,7 +320,7 @@ class ReserveController extends Controller
             return response()->json([
                 'type' => 'success',
                 'message' => 'deletion confirmed with success',
-                'reserve data' =>  $data
+                'data' =>  $data
             ], 200);
         } else {
 
@@ -318,7 +392,7 @@ class ReserveController extends Controller
             ], 200, [], JSON_NUMERIC_CHECK);
         } else {
 
-            $reserve = DB::select('select  locations.name, reserves.status from locations inner join reserves on reserves.location_id=locations.id ');
+            $reserve = DB::select('select  locations.name, locations.image,reserves.id,reserves.start_day, reserves.finish_day,reserves.status,reserves.location_id,reserves.customer_id from locations inner join reserves on reserves.location_id=locations.id ');
 
             return response()->json([
                 'type' => 'success',

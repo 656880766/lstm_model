@@ -12,7 +12,8 @@ class Notification extends Model
         'description',
         'location_name',
         'sender_id',
-        'receiver_id'
+        'receiver_id',
+        'period'
 
     ];
 }

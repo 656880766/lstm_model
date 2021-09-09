@@ -65,6 +65,19 @@ class UsersController extends Controller
         }
     }
 
+    public function getNumberofUsers(Request $request)
+    {
+
+        $data = (int)count(User::where('role', 1)->get());
+        return response()->json([
+            'type' => 'success',
+            'data' => $data
+        ]);
+    }
+
+
+
+
     /**
      * connecter un client.
      *
@@ -82,6 +95,7 @@ class UsersController extends Controller
         $user =  User::where('email', $request->email)->first();
 
 
+
         if (!$user) {
             return response()->json([
                 'type' => 'error',
@@ -93,14 +107,16 @@ class UsersController extends Controller
                 'message' => 'invalid password'
             ]);
         } else {
+
             $role = DB::select("select role from users where email= ?", [$request->email]);
             $role = $role[0]->role;
-
+            $admin_data = User::where('role', 0)->first();
             $token =  $user->createToken('yvesFoyetTokenLogin')->plainTextToken;
             return response()->json([
                 'type' => 'success',
-                'message' => 'user connected successfully',
+                'message' => 'connected successfully',
                 'user' => $user,
+                'admin' => $admin_data,
                 'role' => (int)$role,
                 'token' => $token
             ], 200);
@@ -262,7 +278,7 @@ class UsersController extends Controller
         if ($result == 0) {
             return response()->json(
                 [
-                    'type' => 'success',
+                    'type' => 'error',
                     'message' => 'is not exist a customer who has this id'
                 ],
                 200,
@@ -271,8 +287,9 @@ class UsersController extends Controller
             );
         } else {
 
-            $updateCustomer = User::find($id);
+            $updateCustomer = User::findOrFail($id);
             $name = $request->input('name');
+            $firstname = $request->input('firstname');
             $email = $request->input('email');
             $phone = $request->input('phone');
             $password = $request->input('password');
@@ -280,10 +297,17 @@ class UsersController extends Controller
             if ($password === $confirm_password) {
 
                 $updateCustomer->name = $name;
+                $updateCustomer->first_name = $firstname;
                 $updateCustomer->email = $email;
                 $updateCustomer->phone = $phone;
-                $updateCustomer->password = $password;
-                // $updateCustomer->save();
+                $updateCustomer->password = Hash::make($password);
+                $updateCustomer->save();
+                $Customer = User::where('id', $id)->first();
+                return response()->json([
+                    'type' => 'success',
+                    'message' => 'your account was updated successfully',
+                    'data' => $Customer
+                ]);
             } else {
 
                 return response()->json(
@@ -293,30 +317,6 @@ class UsersController extends Controller
 
                     ],
                     404,
-                    [],
-                    JSON_NUMERIC_CHECK
-                );
-            }
-
-
-            if ($updateCustomer) {
-                return response()->json(
-                    [
-                        'type' => 'success',
-                        'message' => 'the update is successfully',
-                        'data' => $updateCustomer
-                    ],
-                    200,
-                    [],
-                    JSON_NUMERIC_CHECK
-                );
-            } else {
-                return response()->json(
-                    [
-                        'type' => 'error',
-                        'message' => 'the update has fail'
-                    ],
-                    200,
                     [],
                     JSON_NUMERIC_CHECK
                 );

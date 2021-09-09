@@ -110,6 +110,26 @@ class LocationsController extends Controller
         ], 200, [], JSON_NUMERIC_CHECK);
     }
 
+    /**
+     * recuperer les emplacements par categorie.
+     *
+     * @return \Illuminate\Http\Response
+     */
+
+    public function getLocationById(Request $request)
+    {
+        $request->validate(
+            ["id" => "required|numeric"]
+        );
+
+        $getLocation = Locations::find($request->id);
+
+        return response()->json([
+            'type' => 'success',
+            'data' => $getLocation
+        ]);
+    }
+
 
     /**
      * recuperer une location et sa categorie associée.
@@ -364,5 +384,15 @@ class LocationsController extends Controller
                 404
             );
         }
+    }
+
+    public function getNumberofLocations(){
+
+        $data = (int)count(Locations::All());
+        return response()->json([
+            'type' => 'success',
+            'data' => $data
+        ]);  
+    
     }
 }

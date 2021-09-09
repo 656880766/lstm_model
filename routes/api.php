@@ -35,6 +35,10 @@ use PhpParser\Parser\Tokens;
 Route::get('token', function (Request $request) {
     return $request->create_token("yves")->toplaintext();
 });
+
+Route::get('user/getNumberofUsers', [UsersController::class, 'getNumberofUsers'])->name('user.getNumberofUsers');
+Route::get('locations/getNumberofLocations', [locationsController::class, 'getNumberofLocations'])->name('locations.getNumberofLocations');
+Route::get('categories/getNumberofCategories', [CategoriesController::class, 'getNumberofCategories'])->name('categories.getNumberofCategories');
 Route::post('user/register', [UsersController::class, 'register'])->name('user.register');
 Route::post('user/login', [UsersController::class, 'login'])->name('user.login');
 Route::get('user/logout', [UsersController::class, 'logout'])->name('user.logout');
@@ -58,13 +62,15 @@ Route::delete('locations/delete', [locationsController::class, 'delete'])->name(
 Route::get('locations/storeLike', [locationsController::class, 'storeLike'])->name('locations.storeLike');
 Route::get('locations/getFavoriteLocation', [locationsController::class, 'getFavoriteLocation']);
 Route::get('locations/getNotFavoriteLocation', [locationsController::class, 'getNotFavoriteLocation']);
+Route::get('locations/getLocationById', [locationsController::class, 'getLocationById'])->name('locations.getLocationById');
 
 Route::get('categories/getCategoryWithLocations', [categoriesController::class, 'getCategoryWithLocations'])->name('categories.getCategoryWithLocations');
 Route::post('categories/update', [categoriesController::class, 'update'])->name('categories.update');
 Route::delete('categories/delete', [categoriesController::class, 'delete'])->name('categories.delete');
 Route::get('likedlocations/liker', [LikedLocationsController::class, 'liker'])->name('LikedLocationsController.liker');
 Route::post('reserve/reserve', [ReserveController::class, 'reserve'])->name('reserve.reserve');
-Route::get('reserve/confirm_reserve', [ReserveController::class, 'confirm_reserve'])->name('reserve.confirm_reserve');
+Route::get('reserve/confirm_reserve_admin', [ReserveController::class, 'confirm_reserve_admin'])->name('reserve.confirm_reserve_admin');
+Route::get('reserve/confirm_reserve_user', [ReserveController::class, 'confirm_reserve_user'])->name('reserve.confirm_reserve_user');
 
 
 Route::get('reserve/getReservationsByLocation', [ReserveController::class, 'getReservationsByLocation'])->name('reserve.getReservationsByLocation');

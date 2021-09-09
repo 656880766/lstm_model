@@ -240,4 +240,14 @@ class CategoriesController extends Controller
             ], 200, [], JSON_NUMERIC_CHECK);
         }
     }
+
+    public function getNumberofCategories(Request $request){
+
+        $data = (int)count(Categories::All());
+        return response()->json([
+            'type' => 'success',
+            'data' => $data
+        ]);  
+    
+    }
 }

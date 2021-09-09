@@ -18,6 +18,8 @@ class CreateNotificationTable extends Migration
             $table->String('description');
             $table->bigInteger('sender_id')->unsigned()->index();
             $table->bigInteger('receiver_id')->unsigned()->index();
+            $table->date('start_day')->default('0000-00-00');
+            $table->date('finish_day')->default('0000-00-00');
             $table->String('status')->default('0');
             $table->timestamps();
         });

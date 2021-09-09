@@ -17,8 +17,7 @@ class CreateReserveTable extends Migration
             $table->increments('id');
             $table->bigInteger('customer_id')->unsigned()->index();
             $table->bigInteger('location_id')->unsigned()->index();
-            $table->date('start_day')->default('0000-00-00');
-            $table->date('finish_day')->default('0000-00-00');
+            $table->String('period');
             $table->String('status')->default('0');
             $table->foreign('customer_id')->references('id')->on('users');
             $table->foreign('location_id')->references('id')->on('locations');
