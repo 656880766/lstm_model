@@ -1,0 +1,129 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+
+# Chargement des données
+df = pd.read_excel("DATA_EX.xlsx", engine='openpyxl')
+df.set_index('datetime', inplace=True)
+df.head()
+# Sélection des colonnes de données à utiliser pour la prédiction
+columns_to_predict = ['temp_max', 'temp_min', 'temp']
+
+
+   
+# Préparation des données pour chaque station
+stations = df['station_id'].unique()
+models = {}
+for station in stations:
+    print(f"Processing station {station}")
+    df_station = df[df['station_id'] == station][columns_to_predict]
+    
+    # Normalisation des données
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaled_data = scaler.fit_transform(df_station)
+
+    # Préparation des données d'entrée et de sortie pour le modèle LSTM
+    n_past = 30 # Nombre de jours passés utilisés pour la prédiction
+    X = []
+    y = []
+    for i in range(n_past, len(df_station)):
+        X.append(scaled_data[i-n_past:i, :])
+        y.append(scaled_data[i, :])
+
+    X = np.array(X)
+    y = np.array(y) # Définition du modèle LSTM
+    # Boucle pour tester chaque fonction de perte
+    for loss_func in loss_functions:
+        # Définition du modèle LSTM
+        model = Sequential()
+        model.add(LSTM(168, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+        model.add(LSTM(168, return_sequences=False))
+        model.add(Dense(len(columns_to_predict)))
+
+        # Compilation du modèle avec la fonction de perte spécifique
+        model.compile(optimizer='adam', loss=loss_func)
+
+        # Entraînement du modèle
+        model.fit(X, y, epochs=1, batch_size=32, verbose=0)
+
+        # Évaluation du modèle sur les données de test (facultatif)
+        evaluation_result = model.evaluate(X, y)
+
+        # Stockage des résultats pour cette fonction de perte
+        results[str(loss_func)] = evaluation_result
+
+    # Affichage des résultats
+    for loss_func, result in results.items():
+        print(f"Loss function: {loss_func}, Evaluation result: {result}")
+    models[station] = {'model': model, 'scaler': scaler}
+
+
+# Utilisation des modèles pour prédire les données futures pour chaque station
+n_future = 5 # Nombre de jours à prédire
+forecasts = {}
+for station in stations:
+    print(f"Predicting for station {station}")
+    df_station = df[df['station_id'] == station][columns_to_predict]
+    scaler = models[station]['scaler']
+    model = models[station]['model']
+    # Préparation des données d'entrée pour la prédiction
+inputs = df_station[-n_past:].values
+inputs = scaler.transform(inputs)
+
+# Utilisation des modèles pour prédire les données futures pour chaque station
+n_future = 5 # Nombre de jours à prédire
+forecasts = {}
+for station in stations:
+    print(f"Predicting for station {station}")
+    df_station = df[df['station_id'] == station][columns_to_predict]
+    scaler = models[station]['scaler']
+    model = models[station]['model']
+
+    # Préparation des données d'entrée pour la prédiction
+    inputs = df_station[-n_past:].values
+    inputs = scaler.transform(inputs)
+
+    # Prédiction pour les jours suivants
+    forecast = []
+    for i in range(n_future):
+        X_test = np.array([inputs])
+        X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], X_test.shape[2]))
+        y_pred = model.predict(X_test)
+        forecast.append(y_pred[0])
+        inputs = np.vstack((inputs[1:], y_pred))
+
+    # Inverser la normalisation pour obtenir les prévisions originales
+    forecast = scaler.inverse_transform(forecast)
+    
+    # Ajouter les prévisions dans le dictionnaire des prévisions pour chaque station
+    forecasts[station] = pd.DataFrame(forecast, columns = columns_to_predict)
+    forecasts[station].index = pd.date_range(start='2023-01-01', periods=n_future, freq='D')
+
+# Concaténer les prévisions de chaque station dans un seul DataFrame
+all_forecasts = pd.concat([forecasts[station] for station in stations], axis=1, keys=stations)
+
+
+# Enregistrer les prévisions dans un fichier Excel
+all_forecasts.to_excel('all_forecasts_temp2.xlsx')
+print("Prévisions enregistrées dans 'all_forecasts.xlsx'")
+
+# Visualiser les prévisions pour chaque station
+for station in stations:
+    forecast_df = forecasts[station]
+    fig, axes = plt.subplots(nrows=4, ncols=2, figsize=(15, 20))
+    for i, column in enumerate(columns_to_predict):
+        row = i // 2
+        col = i % 2
+        axes[row, col].plot(df[df['station_id'] == station].index, df[df['station_id'] == station][column], label='Données réelles')
+        axes[row, col].plot(forecast_df.index, forecast_df[column], label='Prévisions')
+        axes[row, col].set_title(column)
+        axes[row, col].legend()
+    plt.suptitle(f"Prévisions pour la station {station}")
+    plt.tight_layout()
+    plt.show()
+
+
+
